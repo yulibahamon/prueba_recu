@@ -6,7 +6,6 @@ Aplicación full-stack para gestión de ventas con:
 - **Frontend**: Vue.js + Apollo Client
 
 ## Estructura del Proyecto
-````markdown
 ```text
 PRUEBA_RECU/
 │
@@ -42,7 +41,7 @@ PRUEBA_RECU/
 ├── datos_prueba.sql          # Datos iniciales para MySQL
 ├── .gitignore               # Archivos ignorados por Git
 └── README.md                # Documentación principal
-
+```
 
 ## 📚 Tecnologías Utilizadas
 
