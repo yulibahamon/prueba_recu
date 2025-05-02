@@ -20,6 +20,43 @@ PRUEBA_RECU/
 ├── .gitignore
 └── README.md
 
+````markdown
+```text
+PRUEBA_RECU/
+│
+├── ventas_app/               # Backend Django (Python)
+│   ├── core/                 # Configuración principal del proyecto
+│   │   ├── settings.py       # Archivo de configuración y conexión  con base de datos 
+│   │   ├── urls.py           # Rutas principales
+│   │   └── ...
+│   ├── ventas/               # App de gestión de ventas
+│   │   ├── models.py         # Modelos de datos
+│   │   ├── schema.py         # Definiciones GraphQL
+│   │   └── ...
+│   ├── manage.py             # Script de administración
+│   └── requirements.txt      # Dependencias Python
+│
+├── ventas_frontend/          # Frontend Vue.js
+│   ├── src/
+|   │   ├── apollo/
+|   │   │   └── index.js         # Configuración del cliente Apollo para GraphQL
+|   │   ├── components/         # Componentes reutilizables
+|   │   ├── views/             # Vistas principales (Dashboard, Sales, Statistics)
+|   │   ├── router/
+|   │   │   └── index.js       # Configuración de rutas de la aplicación
+|   │   ├── store/
+|   │   │   └── index.js       # Gestión del estado con Vuex
+|   |   ├── graphql/
+|   │   │   └── queries.js       # Definición de todas las consultas GraphQL
+|   │   ├── App.vue           # Componente raíz
+|   │   └── main.js          # Punto de entrada de la aplicación
+|   ├── .env                 # Variables de entorno (URL del API)
+|   └── package.json        # Dependencias y scripts
+│
+├── datos_prueba.sql          # Datos iniciales para MySQL
+├── .gitignore               # Archivos ignorados por Git
+└── README.md                # Documentación principal
+
 
 ## 📚 Tecnologías Utilizadas
 
