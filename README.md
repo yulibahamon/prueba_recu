@@ -6,20 +6,6 @@ Aplicación full-stack para gestión de ventas con:
 - **Frontend**: Vue.js + Apollo Client
 
 ## Estructura del Proyecto
-PRUEBA_RECU/
-├── ventas_app/ # Backend Django
-│ ├── core/ # Configuración principal
-│ ├── ventas/ # App de ventas
-│ ├── manage.py
-│ └── ...
-├── ventas_frontend/ # Frontend Vue.js
-│ ├── src/
-│ ├── public/
-│ └── ...
-├── datos_prueba.sql # Datos iniciales para MySQL
-├── .gitignore
-└── README.md
-
 ````markdown
 ```text
 PRUEBA_RECU/
