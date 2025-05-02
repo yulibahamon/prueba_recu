@@ -51,6 +51,18 @@ class SalesSummaryType(graphene.ObjectType):
     mode_product = graphene.Field(ProductType, description="Producto más vendido (moda)")
     top_customer = graphene.Field(CustomerType, description="Cliente con más compras")
 
+class TopCustomerDetailsType(graphene.ObjectType):
+    customer = graphene.Field(CustomerType, description="Cliente con más compras")
+    total_purchases = graphene.Int(description="Número total de compras realizadas")
+    total_quantity = graphene.Int(description="Cantidad total de productos comprados")
+    total_spent = graphene.Float(description="Cantidad total gastada")
+
+class TopProductDetailsType(graphene.ObjectType):
+    product = graphene.Field(ProductType, description="Producto más vendido")
+    total_sales = graphene.Int(description="Número total de ventas del producto")
+    total_quantity = graphene.Int(description="Cantidad total vendida")
+    total_revenue = graphene.Float(description="Ingresos totales generados")
+
 class Query(graphene.ObjectType):
     # Consultas básicas
     all_products = graphene.List(ProductType, description="Lista de todos los productos")
@@ -71,12 +83,12 @@ class Query(graphene.ObjectType):
         description="Resumen general de ventas"
     )
     top_customer = graphene.Field(
-        CustomerType,
+        TopCustomerDetailsType,
         description="Cliente con más compras"
     )
     top_product = graphene.Field(
-        ProductType,
-        description="Cliente con más compras"
+        TopProductDetailsType,
+        description="Producto más comprado"
     )
     
     # Resolvers para consultas básicas
@@ -213,35 +225,69 @@ class Query(graphene.ObjectType):
         )
     
     def resolve_top_customer(self, info):
-        """Devuelve el cliente con más compras"""
-        customer_purchases = {}
+        """
+        Devuelve el cliente con más compras junto con información adicional:
+        - Total de compras
+        - Cantidad total de productos comprados
+        - Total gastado
+        """
+        # Obtener el conteo de compras por cliente
+        customer_purchase_counts = Sale.objects.values('customer').annotate(
+            purchase_count=Count('id')
+        ).order_by('-purchase_count')
         
-        for sale in Sale.objects.all():
-            customer_id = sale.customer.id
-            if customer_id in customer_purchases:
-                customer_purchases[customer_id] += 1
-            else:
-                customer_purchases[customer_id] = 1
-                
-        if not customer_purchases:
+        if not customer_purchase_counts.exists():
             return None
             
-        top_customer_id = max(customer_purchases.items(), key=lambda x: x[1])[0]
-        return Customer.objects.get(id=top_customer_id)
+        # Obtener el ID del cliente con más compras
+        top_customer_id = customer_purchase_counts.first()['customer']
+        top_customer = Customer.objects.get(id=top_customer_id)
+        
+        # Obtener todas las ventas del cliente
+        customer_sales = Sale.objects.filter(customer=top_customer)
+        
+        # Calcular métricas adicionales
+        total_purchases = customer_sales.count()
+        total_quantity = customer_sales.aggregate(total=Sum('quantity'))['total'] or 0
+        total_spent = sum(float(sale.product.price * sale.quantity) for sale in customer_sales)
+        
+        return TopCustomerDetailsType(
+            customer=top_customer,
+            total_purchases=total_purchases,
+            total_quantity=total_quantity,
+            total_spent=total_spent
+        )
     
     def resolve_top_product(self, info):
-        """Devuelve el producto con más ventas"""
-        product_sales = {}
+        """
+        Devuelve el producto más vendido junto con información adicional:
+        - Total de ventas
+        - Cantidad total vendida
+        - Ingresos totales generados
+        """
+        # Obtener el conteo de ventas por producto (en términos de cantidad)
+        product_quantity_counts = Sale.objects.values('product').annotate(
+            quantity_sold=Sum('quantity')
+        ).order_by('-quantity_sold')
         
-        for sale in Sale.objects.all():
-            product_id = sale.product.id
-            if product_id in product_sales:
-                product_sales[product_id] += 1
-            else:
-                product_sales[product_id] = 1
-                
-        if not product_sales:
+        if not product_quantity_counts.exists():
             return None
             
-        top_product_id = max(product_sales.items(), key=lambda x: x[1])[0]
-        return Product.objects.get(id=top_product_id)
+        # Obtener el ID del producto más vendido
+        top_product_id = product_quantity_counts.first()['product']
+        top_product = Product.objects.get(id=top_product_id)
+        
+        # Obtener todas las ventas del producto
+        product_sales = Sale.objects.filter(product=top_product)
+        
+        # Calcular métricas adicionales
+        total_sales = product_sales.count()  # Número de transacciones
+        total_quantity = product_sales.aggregate(total=Sum('quantity'))['total'] or 0  # Unidades vendidas
+        total_revenue = sum(float(sale.product.price * sale.quantity) for sale in product_sales)
+        
+        return TopProductDetailsType(
+            product=top_product,
+            total_sales=total_sales,
+            total_quantity=total_quantity,
+            total_revenue=total_revenue
+        )
